@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   Camera,
+  CameraOff,
   Upload,
   RotateCcw,
   Sparkles,
@@ -127,13 +128,43 @@ export default function App() {
    ========================================================================= */
 function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [streamActive, setStreamActive] = useState(false);
-  const [cameraError, setCameraError] = useState(false);
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+
+  const stopCamera = useCallback(() => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => {
+        try {
+          track.stop();
+        } catch (err) {
+          console.warn('Error stopping camera track:', err);
+        }
+      });
+      streamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    setStreamActive(false);
+    setCameraLoading(false);
+  }, []);
 
   const startCamera = useCallback(async () => {
+    stopCamera();
+    setCameraLoading(true);
+    setCameraError(null);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setCameraError('Camera access is not supported on this browser or device.');
+      setCameraLoading(false);
+      return;
+    }
+
     try {
-      setCameraError(false);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           facingMode: 'environment',
@@ -141,29 +172,50 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
           height: { ideal: 1080 },
         },
       });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setStreamActive(true);
+      streamRef.current = stream;
+      setStreamActive(true);
+    } catch (err: any) {
+      console.warn('Camera stream error or permission denied:', err);
+      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
+        setCameraError('Camera permission was denied. Please allow camera access in your browser settings or choose a photo from your album.');
+      } else {
+        setCameraError('Could not access camera. You can upload an image or try sample text.');
       }
-    } catch (err) {
-      console.warn('Camera stream error or unavailable:', err);
-      setCameraError(true);
-      setStreamActive(false);
+      stopCamera();
+    } finally {
+      setCameraLoading(false);
     }
-  }, []);
+  }, [stopCamera]);
 
+  // Attach srcObject when streamActive and videoRef are ready
   useEffect(() => {
-    startCamera();
+    if (streamActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [streamActive]);
+
+  // Stop camera when component unmounts
+  useEffect(() => {
     return () => {
-      if (videoRef.current?.srcObject) {
-        const stream = videoRef.current.srcObject as MediaStream;
-        stream.getTracks().forEach((t) => t.stop());
+      stopCamera();
+    };
+  }, [stopCamera]);
+
+  // Stop camera when tab becomes hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopCamera();
       }
     };
-  }, [startCamera]);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [stopCamera]);
 
   const capturePhoto = () => {
-    if (!videoRef.current) return;
+    if (!videoRef.current || !streamActive) return;
     const video = videoRef.current;
     const canvas = document.createElement('canvas');
     canvas.width = video.videoWidth || 1280;
@@ -172,6 +224,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
     if (ctx) {
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      stopCamera();
       onCapture(dataUrl);
     }
   };
@@ -182,6 +235,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
+        stopCamera();
         onCapture(reader.result);
       }
     };
@@ -189,6 +243,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
   };
 
   const loadSampleChineseText = () => {
+    stopCamera();
     // Render a high quality sample Chinese passage onto a canvas
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
@@ -262,7 +317,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
 
         <button
           onClick={loadSampleChineseText}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium backdrop-blur-sm transition active:scale-95"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 text-xs font-medium backdrop-blur-sm transition active:scale-95 cursor-pointer"
           title="Load a sample Chinese practice text"
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
@@ -273,38 +328,73 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
       {/* Viewfinder area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">
         {streamActive && !cameraError ? (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            muted
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center text-center p-8 text-zinc-400">
-            <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-4 text-zinc-500 shadow-inner">
-              <Camera className="w-8 h-8" />
+          <>
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            {/* Viewfinder Framing Guide */}
+            <div className="pointer-events-none absolute inset-10 border-2 border-dashed border-white/30 rounded-2xl flex items-center justify-center">
+              <span className="text-[11px] font-medium tracking-wider uppercase text-white/60 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
+                Align Chinese Text
+              </span>
             </div>
-            <p className="text-zinc-200 font-medium text-base mb-1">Point at Chinese Text</p>
-            <p className="text-xs text-zinc-500 max-w-[260px] mb-6">
-              Take a photo of your book, exercise sheet, or pick an existing image.
-            </p>
+            {/* Stop Camera overlay button */}
             <button
-              onClick={() => fileInputRef.current?.click()}
-              className="px-5 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold flex items-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition"
+              onClick={stopCamera}
+              className="absolute top-20 right-4 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 text-zinc-300 hover:text-white border border-white/10 text-xs flex items-center gap-1.5 backdrop-blur-md transition active:scale-95 cursor-pointer"
             >
-              <Upload className="w-4 h-4" />
-              Choose Photo from Album
+              <CameraOff className="w-3.5 h-3.5 text-red-400" />
+              <span>Stop Camera</span>
             </button>
-          </div>
-        )}
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center text-center p-8 text-zinc-400 max-w-sm">
+            <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5 text-zinc-400 shadow-inner relative">
+              <Camera className="w-10 h-10 text-orange-500/80" />
+            </div>
 
-        {/* Viewfinder Framing Guide */}
-        {streamActive && (
-          <div className="pointer-events-none absolute inset-10 border-2 border-dashed border-white/30 rounded-2xl flex items-center justify-center">
-            <span className="text-[11px] font-medium tracking-wider uppercase text-white/60 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
-              Align Chinese Text
-            </span>
+            <h3 className="text-zinc-100 font-semibold text-lg mb-2">Scan Chinese Text</h3>
+            <p className="text-xs text-zinc-400 max-w-[280px] mb-6 leading-relaxed">
+              Turn on your camera to capture study materials, or upload an existing image from your device.
+            </p>
+
+            {cameraError && (
+              <div className="w-full p-3 mb-6 rounded-xl bg-red-950/50 border border-red-800/60 text-red-300 text-xs text-left">
+                {cameraError}
+              </div>
+            )}
+
+            <div className="w-full flex flex-col gap-3">
+              <button
+                onClick={startCamera}
+                disabled={cameraLoading}
+                className="w-full px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer"
+              >
+                {cameraLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Opening Camera...</span>
+                  </>
+                ) : (
+                  <>
+                    <Camera className="w-4 h-4" />
+                    <span>Turn On Camera</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium flex items-center justify-center gap-2 border border-zinc-700 active:scale-95 transition cursor-pointer"
+              >
+                <Upload className="w-4 h-4 text-zinc-400" />
+                <span>Choose Photo from Album</span>
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -321,7 +411,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
         />
         <button
           onClick={() => fileInputRef.current?.click()}
-          className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 transition active:scale-95"
+          className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 transition active:scale-95 cursor-pointer"
           title="Upload image"
           aria-label="Upload image"
         >
@@ -330,23 +420,36 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
 
         {/* Big Shutter Button */}
         <button
-          onClick={streamActive ? capturePhoto : () => fileInputRef.current?.click()}
-          className="w-18 h-18 rounded-full border-4 border-zinc-400/80 p-1 flex items-center justify-center bg-transparent active:scale-90 transition shadow-xl"
-          aria-label="Take Photo"
+          onClick={streamActive ? capturePhoto : startCamera}
+          className={`w-18 h-18 rounded-full border-4 p-1 flex items-center justify-center transition shadow-xl cursor-pointer ${
+            streamActive
+              ? 'border-orange-500/80 active:scale-90'
+              : 'border-zinc-700 hover:border-zinc-500 opacity-80'
+          }`}
+          aria-label={streamActive ? 'Take Photo' : 'Turn On Camera'}
+          title={streamActive ? 'Take Photo' : 'Turn On Camera'}
         >
-          <div className="w-full h-full rounded-full bg-white flex items-center justify-center text-zinc-900 shadow-md">
+          <div
+            className={`w-full h-full rounded-full flex items-center justify-center shadow-md transition ${
+              streamActive ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'
+            }`}
+          >
             <Camera className="w-6 h-6" />
           </div>
         </button>
 
-        {/* Retry / Flip Camera button */}
+        {/* Camera Toggle / Power button */}
         <button
-          onClick={startCamera}
-          className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 transition active:scale-95"
-          title="Refresh Camera"
-          aria-label="Refresh Camera"
+          onClick={streamActive ? stopCamera : startCamera}
+          className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition active:scale-95 cursor-pointer ${
+            streamActive
+              ? 'bg-zinc-900 border-zinc-800 text-orange-400 hover:bg-zinc-800 hover:text-orange-300'
+              : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
+          }`}
+          title={streamActive ? 'Turn Off Camera' : 'Turn On Camera'}
+          aria-label={streamActive ? 'Turn Off Camera' : 'Turn On Camera'}
         >
-          <RefreshCw className="w-5 h-5" />
+          {streamActive ? <CameraOff className="w-5 h-5" /> : <RefreshCw className="w-5 h-5" />}
         </button>
       </footer>
     </div>
