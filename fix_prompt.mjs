@@ -1,44 +1,9 @@
-import express from 'express';
-import path from 'path';
-import { createServer as createViteServer } from 'vite';
-import { GoogleGenAI } from '@google/genai';
+import fs from 'fs';
+let code = fs.readFileSync('server.ts', 'utf8');
 
-async function startServer() {
-  const app = express();
-  const PORT = 3000;
+const regex = /const languageInstruction =[\s\S]*?\$\{languageInstruction\}`;/m;
 
-  app.use(express.json({ limit: '50mb' }));
-
-  // Lazy init Gemini AI
-  const getAI = () => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY environment variable is missing.');
-    }
-    return new GoogleGenAI({ apiKey });
-  };
-
-  // Health check endpoint
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
-  });
-
-  // Image analysis endpoint
-  app.post('/api/analyze', async (req, res) => {
-    try {
-      const { image, language = 'en' } = req.body;
-      if (!image) {
-        return res.status(400).json({ error: 'No image provided.' });
-      }
-
-      const ai = getAI();
-
-      // Clean base64 data and get mime type
-      const mimeMatch = image.match(/^data:(image\/[a-zA-Z0-9+.-]+);base64,/);
-      const mimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-      const base64Data = image.replace(/^data:image\/[a-zA-Z0-9+.-]+;base64,/, '');
-
-      const promptEn = `You are an expert, encouraging Chinese language tutor analyzing a photo of Chinese study material with user-drawn highlighter annotations.
+const replacement = `const promptEn = \`You are an expert, encouraging Chinese language tutor analyzing a photo of Chinese study material with user-drawn highlighter annotations.
 
 There are 2 highlighter colors used:
 1. Warm Coral / Orange: Highlights for NEW VOCABULARY WORDS.
@@ -66,9 +31,9 @@ For each highlighted grammar section:
 CRITICAL INSTRUCTION: DO NOT output any introductory text, greetings, conversational filler, or concluding remarks. 
 - ONLY include the vocabulary section if vocabulary words are actually highlighted in orange/amber. If none are, OMIT this section entirely.
 - ONLY include the grammar section if grammar patterns are actually highlighted in blue/emerald. If none are, OMIT this section entirely.
-If absolutely nothing is highlighted, just transcribe the visible Chinese text. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability.`;
+If absolutely nothing is highlighted, just transcribe the visible Chinese text. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability.\`;
 
-const promptUa = `Ви - експертний, доброзичливий викладач китайської мови, який аналізує фотографію навчального матеріалу з китайської з виділеннями, зробленими користувачем.
+const promptUa = \`Ви - експертний, доброзичливий викладач китайської мови, який аналізує фотографію навчального матеріалу з китайської з виділеннями, зробленими користувачем.
 
 Використовується 2 кольори маркерів:
 1. Помаранчевий / Бурштиновий: Виділення для НОВИХ СЛІВ (Лексика).
@@ -96,53 +61,11 @@ const promptUa = `Ви - експертний, доброзичливий вик
 КРИТИЧНА ІНСТРУКЦІЯ: НЕ виводьте жодних вступних слів, привітань, розмовного наповнювача або заключних ремарок.
 - Включайте розділ "Нові слова" ТІЛЬКИ якщо лексика дійсно виділена помаранчевим/бурштиновим кольором. Якщо ні, ПРОПУСТІТЬ цей розділ повністю.
 - Включайте розділ "Граматика та структура" ТІЛЬКИ якщо граматика дійсно виділена синім/смарагдовим кольором. Якщо ні, ПРОПУСТІТЬ цей розділ повністю.
-Якщо нічого не виділено, просто транскрибуйте видимий китайський текст. Форматуйте все чітко за допомогою чистих заголовків Markdown, маркованих списків та жирного тексту для оптимальної читабельності.`;
+Якщо нічого не виділено, просто транскрибуйте видимий китайський текст. Форматуйте все чітко за допомогою чистих заголовків Markdown, маркованих списків та жирного тексту для оптимальної читабельності.\`;
 
-const prompt = language === 'ua' ? promptUa : promptEn;
+const prompt = language === 'ua' ? promptUa : promptEn;`;
 
-      const response = await ai.models.generateContent({
-        model: 'gemini-3.1-flash-lite',
-        contents: [
-          {
-            role: 'user',
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType,
-                  data: base64Data,
-                },
-              },
-            ],
-          },
-        ],
-      });
+code = code.replace(regex, replacement);
 
-      res.json({ result: response.text });
-    } catch (error: any) {
-      console.error('Analysis error:', error);
-      res.status(500).json({ error: error?.message || 'Failed to analyze the image.' });
-    }
-  });
-
-  // Vite middleware in development vs static file serving in production
-  if (process.env.NODE_ENV !== 'production') {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
-  }
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on http://0.0.0.0:${PORT}`);
-  });
-}
-
-startServer();
+fs.writeFileSync('server.ts', code);
+console.log('Fixed server.ts');

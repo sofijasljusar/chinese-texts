@@ -39,7 +39,64 @@ const COLOR_CONFIG = {
   },
 };
 
+
+export type Language = 'en' | 'ua';
+
+export const t = {
+  en: {
+    title: "Little Dragon",
+    subtitle: "Snap text to highlight & analyze",
+    trySample: "Try Sample",
+    scanTitle: "Scan Chinese Text",
+    scanDesc: "Upload an existing image from your device to begin analysis.",
+    choosePhoto: "Choose Photo",
+    retake: "Retake",
+    highlightTitle: "Highlight Text",
+    highlightDesc: "Mark words or grammar",
+    newWords: "New Words",
+    grammar: "Grammar",
+    dragHint: "Drag your finger over words to highlight",
+    analyze: "Analyze Highlights",
+    studyNotes: "Study Notes",
+    copybook: "Copy to your copybook",
+    copy: "Copy",
+    copied: "Copied!",
+    endLearning: "End Learning",
+    analyzing: "Analyzing Highlights...",
+    analyzingDesc: "Checking Pinyin, Chengyu origins, formality & grammar structure.",
+    analysisError: "Analysis Error",
+    backToCamera: "Back to Camera",
+    finished: "Finished! Analyze Next Page"
+  },
+  ua: {
+    title: "Маленький Дракон",
+    subtitle: "Сфотографуйте текст для аналізу",
+    trySample: "Зразок",
+    scanTitle: "Сканувати текст",
+    scanDesc: "Завантажте зображення з пристрою, щоб почати аналіз.",
+    choosePhoto: "Вибрати фото",
+    retake: "Перезняти",
+    highlightTitle: "Виділіть текст",
+    highlightDesc: "Позначте слова або граматику",
+    newWords: "Нові слова",
+    grammar: "Граматика",
+    dragHint: "Проведіть пальцем по словах, щоб виділити",
+    analyze: "Аналізувати виділене",
+    studyNotes: "Навчальні нотатки",
+    copybook: "Скопіюйте у свій зошит",
+    copy: "Копіювати",
+    copied: "Скопійовано!",
+    endLearning: "Завершити",
+    analyzing: "Аналізуємо виділене...",
+    analyzingDesc: "Перевіряємо піньїнь, походження чен'юй, формальність та граматику.",
+    analysisError: "Помилка аналізу",
+    backToCamera: "Назад до камери",
+    finished: "Готово! Наступна сторінка"
+  }
+};
+
 export default function App() {
+  const [language, setLanguage] = useState<Language>('ua');
   const [step, setStep] = useState<Step>('CAMERA');
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [analysisResult, setAnalysisResult] = useState<string>('');
@@ -62,7 +119,7 @@ export default function App() {
       const res = await fetch('/api/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: annotatedDataUrl }),
+        body: JSON.stringify({ image: annotatedDataUrl, language }),
       });
 
       const data = await res.json();
@@ -96,7 +153,7 @@ export default function App() {
     <main className="w-full min-h-[100dvh] bg-zinc-950 text-zinc-100 flex flex-col items-center justify-start sm:p-4 selection:bg-red-800 selection:text-white font-sans">
       <div className="w-full max-w-md min-h-[100dvh] sm:min-h-[850px] sm:max-h-[920px] bg-zinc-950 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border border-zinc-800">
         {step === 'CAMERA' && (
-          <CameraCaptureView onCapture={handleImageCaptured} />
+          <CameraCaptureView onCapture={handleImageCaptured} language={language} setLanguage={setLanguage} />
         )}
 
         {step === 'HIGHLIGHT' && capturedImage && (
@@ -104,6 +161,7 @@ export default function App() {
             rawImage={capturedImage}
             onCancel={() => setStep('CAMERA')}
             onAnalyze={handleStartAnalysis}
+            language={language}
           />
         )}
 
@@ -115,6 +173,7 @@ export default function App() {
             copied={copied}
             onCopy={handleCopyNotes}
             onEndLearning={handleEndLearning}
+            language={language}
           />
         )}
       </div>
@@ -125,7 +184,7 @@ export default function App() {
 /* =========================================================================
    1. CAMERA & CAPTURE VIEW
    ========================================================================= */
-function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) {
+function CameraCaptureView({ onCapture, language, setLanguage }: { onCapture: (img: string) => void, language: Language, setLanguage: (lang: Language) => void }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,18 +266,27 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
             龙
           </div>
           <div>
-            <h1 className="text-[15px] font-serif font-semibold text-zinc-100 tracking-widest uppercase">Little Dragon</h1>
-            <p className="text-[11px] text-zinc-400 font-light tracking-wide">Snap text to highlight & analyze</p>
+            <h1 className="text-[15px] font-serif font-semibold text-zinc-100 tracking-widest uppercase">{t[language].title}</h1>
+            <p className="text-[11px] text-zinc-400 font-light tracking-wide">{t[language].subtitle}</p>
           </div>
         </div>
 
-        <button
-          onClick={loadSampleChineseText}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 border border-zinc-700/50 text-xs font-medium backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
-          title="Load a sample Chinese practice text"
-        >
-          <span>Try Sample</span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={loadSampleChineseText}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 border border-zinc-700/50 text-[10px] font-medium backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
+            title="Load a sample Chinese practice text"
+          >
+            <span>{t[language].trySample}</span>
+          </button>
+          <button
+            onClick={() => setLanguage(language === 'en' ? 'ua' : 'en')}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 text-amber-50/90 border border-zinc-700/50 text-[10px] font-bold backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
+            title="Switch Language"
+          >
+            {language === 'en' ? 'UA' : 'EN'}
+          </button>
+        </div>
       </header>
 
       {/* Main Upload area */}
@@ -237,10 +305,8 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
             <Camera className="w-10 h-10 text-zinc-600 drop-shadow-md" />
           </div>
 
-          <h3 className="text-zinc-100 font-serif tracking-wide text-xl mb-3">Scan Chinese Text</h3>
-          <p className="text-xs text-zinc-400 max-w-[260px] mb-8 leading-relaxed font-light">
-            Upload an existing image from your device to begin analysis.
-          </p>
+          <h3 className="text-zinc-100 font-serif tracking-wide text-xl mb-3">{t[language].scanTitle}</h3>
+          <p className="text-xs text-zinc-400 max-w-[260px] mb-8 leading-relaxed font-light">{t[language].scanDesc}</p>
 
           <input
             ref={fileInputRef}
@@ -256,7 +322,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
               className="w-full px-6 py-3.5 rounded-xl bg-red-900 hover:bg-red-950 text-amber-50 text-base font-serif font-semibold tracking-wide flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(100,10,10,0.2)] active:scale-95 transition cursor-pointer"
             >
               <Upload className="w-4 h-4 text-amber-200/60" />
-              <span>Choose Photo</span>
+              <span>{t[language].choosePhoto}</span>
             </button>
           </div>
         </div>
@@ -278,10 +344,12 @@ function HighlighterView({
   rawImage,
   onCancel,
   onAnalyze,
+  language,
 }: {
   rawImage: string;
   onCancel: () => void;
   onAnalyze: (annotatedImage: string) => void;
+  language: Language;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -430,12 +498,12 @@ function HighlighterView({
           className="flex items-center gap-1 text-xs font-serif font-medium text-zinc-400 hover:text-zinc-100 px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition"
         >
           <ChevronLeft className="w-4 h-4" />
-          Retake
+          {t[language].retake}
         </button>
 
         <div className="text-center">
-          <p className="text-[13px] font-serif font-semibold text-zinc-100 tracking-wide">Highlight Text</p>
-          <p className="text-[10px] text-zinc-400 font-light">Mark words or grammar</p>
+          <p className="text-[13px] font-serif font-semibold text-zinc-100 tracking-wide">{t[language].highlightTitle}</p>
+          <p className="text-[10px] text-zinc-400 font-light">{t[language].highlightDesc}</p>
         </div>
 
         <div className="flex items-center gap-1">
@@ -471,7 +539,7 @@ function HighlighterView({
           }`}
         >
           <span className="w-3 h-3 rounded-full bg-amber-500 border border-amber-200/40"></span>
-          <span>New Words</span>
+          <span>{t[language].newWords}</span>
         </button>
 
         <button
@@ -483,7 +551,7 @@ function HighlighterView({
           }`}
         >
           <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-200/40"></span>
-          <span>Grammar & Order</span>
+          <span>{t[language].grammar}</span>
         </button>
       </div>
 
@@ -508,7 +576,7 @@ function HighlighterView({
 
         {strokes.length === 0 && (
           <div className="absolute bottom-6 inset-x-8 py-2.5 px-4 rounded-xl bg-zinc-900/90 border border-zinc-800 backdrop-blur-md text-center text-[11px] font-light text-zinc-400 pointer-events-none shadow-xl">
-            <span className="inline-block mr-1">🖌️</span> Drag your finger over words or phrases to highlight them
+            <span className="inline-block mr-1">🖌️</span> {t[language].dragHint}
           </div>
         )}
       </div>
@@ -519,7 +587,7 @@ function HighlighterView({
           onClick={handleFinish}
           className="w-full py-4 bg-red-900 hover:bg-red-950 text-amber-50 font-serif tracking-wide rounded-2xl flex items-center justify-center gap-2 text-[15px] shadow-[0_8px_30px_rgba(100,10,10,0.2)] active:scale-[0.98] transition"
         >
-          <span>Analyze Highlights</span>
+          <span>{t[language].analyze}</span>
           <ArrowRight className="w-4 h-4 ml-1 text-amber-200/60" />
         </button>
       </footer>
@@ -537,6 +605,7 @@ function StudyNotesView({
   copied,
   onCopy,
   onEndLearning,
+  language,
 }: {
   markdownText: string;
   isLoading: boolean;
@@ -544,6 +613,7 @@ function StudyNotesView({
   copied: boolean;
   onCopy: () => void;
   onEndLearning: () => void;
+  language: Language;
 }) {
   return (
     <div className="flex-1 flex flex-col h-full bg-[#fcf9f2] text-[#2d2424] overflow-hidden font-sans">
@@ -554,8 +624,8 @@ function StudyNotesView({
             <BookOpen className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-[15px] font-serif font-bold text-[#2d2424] tracking-wide">Study Notes</h2>
-            <p className="text-[11px] text-[#5e4b4b] font-light">Copy to your copybook</p>
+            <h2 className="text-[15px] font-serif font-bold text-[#2d2424] tracking-wide">{t[language].studyNotes}</h2>
+            <p className="text-[11px] text-[#5e4b4b] font-light">{t[language].copybook}</p>
           </div>
         </div>
 
@@ -569,12 +639,12 @@ function StudyNotesView({
               {copied ? (
                 <>
                   <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700 font-semibold">Copied!</span>
+                  <span className="text-emerald-700 font-semibold">{t[language].copied}</span>
                 </>
               ) : (
                 <>
                   <Copy className="w-3.5 h-3.5 text-red-800" />
-                  <span className="text-red-900">Copy</span>
+                  <span className="text-red-900">{t[language].copy}</span>
                 </>
               )}
             </button>
@@ -583,7 +653,7 @@ function StudyNotesView({
             onClick={onEndLearning}
             className="px-4 py-2 rounded-full text-xs font-semibold bg-red-800 hover:bg-red-700 text-amber-50 shadow-[0_2px_10px_rgba(153,27,27,0.2)] transition active:scale-95 tracking-wide"
           >
-            End Learning
+            {t[language].endLearning}
           </button>
         </div>
       </header>
@@ -594,9 +664,9 @@ function StudyNotesView({
           <div className="flex flex-col items-center justify-center py-24 text-center space-y-5">
             <div className="w-14 h-14 rounded-full border-4 border-red-900/10 border-t-red-700 animate-spin" />
             <div>
-              <p className="font-serif font-semibold text-[#2d2424] text-lg">Analyzing Highlights...</p>
+              <p className="font-serif font-semibold text-[#2d2424] text-lg">{t[language].analyzing}</p>
               <p className="text-xs text-[#5e4b4b] mt-2 max-w-[260px] leading-relaxed">
-                Checking Pinyin, Chengyu origins, formality & grammar structure.
+                {t[language].analyzingDesc}
               </p>
             </div>
           </div>
@@ -668,7 +738,7 @@ function StudyNotesView({
               className="w-full py-4 bg-red-900 hover:bg-red-950 text-amber-50 font-serif font-medium tracking-wide rounded-2xl flex items-center justify-center gap-2 text-[15px] shadow-[0_8px_30px_rgba(100,10,10,0.2)] transition active:scale-[0.98]"
             >
               <RotateCcw className="w-4 h-4 text-amber-200/60" />
-              <span>Finished! Analyze Next Page</span>
+              <span>{t[language].finished}</span>
             </button>
           </div>
         </div>
