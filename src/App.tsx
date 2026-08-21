@@ -94,8 +94,8 @@ export default function App() {
   };
 
   return (
-    <main className="w-full min-h-screen bg-zinc-950 text-zinc-100 flex flex-col items-center justify-start sm:p-4 selection:bg-orange-500 selection:text-white">
-      <div className="w-full max-w-md min-h-screen sm:min-h-[850px] sm:max-h-[920px] bg-zinc-900 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border border-zinc-800">
+    <main className="w-full min-h-[100dvh] bg-zinc-950 text-zinc-100 flex flex-col items-center justify-start sm:p-4 selection:bg-orange-500 selection:text-white">
+      <div className="w-full max-w-md min-h-[100dvh] sm:min-h-[850px] sm:max-h-[920px] bg-zinc-900 sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden relative border-0 sm:border border-zinc-800">
         {step === 'CAMERA' && (
           <CameraCaptureView onCapture={handleImageCaptured} />
         )}
@@ -202,7 +202,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
   return (
     <div className="flex-1 flex flex-col h-full bg-black relative">
       {/* Top App Header */}
-      <header className="absolute top-0 inset-x-0 p-5 z-20 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent">
+      <header className="absolute top-0 inset-x-0 px-5 pb-5 pt-[calc(env(safe-area-inset-top)+1.25rem)] z-20 flex items-center justify-between bg-gradient-to-b from-black/80 via-black/40 to-transparent">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/40 flex items-center justify-center text-orange-400 font-bold text-sm">
             汉
@@ -417,7 +417,7 @@ function HighlighterView({
   return (
     <div className="flex-1 flex flex-col h-full bg-zinc-950 select-none">
       {/* Top Action Bar */}
-      <header className="p-4 border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur-md flex items-center justify-between z-10">
+      <header className="px-4 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] border-b border-zinc-800/80 bg-zinc-900/90 backdrop-blur-md flex items-center justify-between z-10">
         <button
           onClick={onCancel}
           className="flex items-center gap-1 text-xs font-semibold text-zinc-400 hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-zinc-800 transition"
@@ -542,7 +542,7 @@ function StudyNotesView({
   return (
     <div className="flex-1 flex flex-col h-full bg-white text-zinc-900 overflow-hidden font-sans">
       {/* Top Clean Header */}
-      <header className="px-5 py-4 border-b border-zinc-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between sticky top-0 z-20 shadow-xs">
+      <header className="px-5 pb-4 pt-[calc(env(safe-area-inset-top)+1rem)] border-b border-zinc-200/90 bg-white/95 backdrop-blur-md flex items-center justify-between sticky top-0 z-20 shadow-xs">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-800">
             <BookOpen className="w-4 h-4" />
