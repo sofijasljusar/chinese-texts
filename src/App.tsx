@@ -13,6 +13,8 @@ import {
   Eye,
   ChevronLeft,
   PenTool,
+  Info,
+  X,
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
@@ -66,7 +68,13 @@ export const t = {
     analyzingDesc: "Checking Pinyin, Chengyu origins, formality & grammar structure.",
     analysisError: "Analysis Error",
     backToCamera: "Back to Camera",
-    finished: "Finished! Analyze Next Page"
+    finished: "Finished! Analyze Next Page",
+    infoTitle: "How to use Little Dragon",
+    infoP1: "📜 **Prep for Class:** Quickly analyze new texts before learning them.",
+    infoP2: "🏮 **Read Faster:** Scan book pages to instantly decode complex grammar.",
+    infoP3: "🀄  **Watch Movies:** Snap photos of subtitles while watching Chinese media.",
+    infoP4: "⛩️ **Dual Learning:** Passively pick up English nuances alongside Chinese.",
+    infoClose: "Got it"
   },
   ua: {
     title: "Маленький Дракон",
@@ -91,7 +99,13 @@ export const t = {
     analyzingDesc: "Перевіряємо піньїнь, походження чен'юй, формальність та граматику.",
     analysisError: "Помилка аналізу",
     backToCamera: "Назад до камери",
-    finished: "Готово! Наступна сторінка"
+    finished: "Готово! Наступна сторінка",
+    infoTitle: "Як використовувати додаток",
+    infoP1: "📜 **Готуйтесь до уроку:** Швидко аналізуйте нові тексти перед вивченням.",
+    infoP2: "🏮 **Читайте книги:** Скануйте сторінки книг для розбору складної граматики.",
+    infoP3: "🀄 **Переглядайте фільми:** Фотографуйте субтитри під час перегляду китайських фільмів.",
+    infoP4: "⛩️ **Подвійне навчання:** Покращуйте англійську паралельно з вивченням китайської.",
+    infoClose: "Зрозуміло"
   }
 };
 
@@ -185,6 +199,7 @@ export default function App() {
    1. CAMERA & CAPTURE VIEW
    ========================================================================= */
 function CameraCaptureView({ onCapture, language, setLanguage }: { onCapture: (img: string) => void, language: Language, setLanguage: (lang: Language) => void }) {
+  const [showInfo, setShowInfo] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -273,6 +288,13 @@ function CameraCaptureView({ onCapture, language, setLanguage }: { onCapture: (i
 
         <div className="flex items-center gap-2">
           <button
+            onClick={() => setShowInfo(true)}
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 border border-zinc-700/50 transition active:scale-95 cursor-pointer shadow-md"
+            title="App Information"
+          >
+            <Info className="w-4 h-4" />
+          </button>
+          <button
             onClick={loadSampleChineseText}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 hover:bg-zinc-700/80 text-zinc-300 border border-zinc-700/50 text-[10px] font-medium backdrop-blur-md transition active:scale-95 cursor-pointer shadow-md"
             title="Load a sample Chinese practice text"
@@ -326,7 +348,37 @@ function CameraCaptureView({ onCapture, language, setLanguage }: { onCapture: (i
             </button>
           </div>
         </div>
-      </div>
+            
+      {/* Information Modal */}
+      {showInfo && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowInfo(false)} />
+          <div className="relative bg-zinc-900 border border-zinc-700/50 shadow-2xl rounded-2xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setShowInfo(false)}
+              className="absolute top-4 right-4 p-1 rounded-full text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-lg font-serif font-semibold text-zinc-100 mb-5 pr-8">
+              {t[language].infoTitle}
+            </h2>
+            <div className="space-y-4">
+              <div className="text-sm text-zinc-300 leading-relaxed"><ReactMarkdown>{t[language].infoP1}</ReactMarkdown></div>
+              <div className="text-sm text-zinc-300 leading-relaxed"><ReactMarkdown>{t[language].infoP2}</ReactMarkdown></div>
+              <div className="text-sm text-zinc-300 leading-relaxed"><ReactMarkdown>{t[language].infoP3}</ReactMarkdown></div>
+              <div className="text-sm text-zinc-300 leading-relaxed"><ReactMarkdown>{t[language].infoP4}</ReactMarkdown></div>
+            </div>
+            <button
+              onClick={() => setShowInfo(false)}
+              className="w-full mt-6 py-2.5 rounded-xl bg-red-900 hover:bg-red-800 text-amber-50 font-medium tracking-wide shadow-lg transition active:scale-95"
+            >
+              {t[language].infoClose}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
     </div>
   );
 }
