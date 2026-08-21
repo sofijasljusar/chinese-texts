@@ -1,0 +1,8 @@
+{
+  "name": "Chinese Study Assistant",
+  "description": "Snap a photo of Chinese text, highlight words and grammar, and get instant AI-powered explanations.",
+  "requestFramePermissions": [
+    "camera"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
