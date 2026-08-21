@@ -69,7 +69,7 @@ CRITICAL INSTRUCTION: DO NOT output any introductory text, greetings, conversati
 If absolutely nothing is highlighted, just transcribe the visible Chinese text. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability.`;
 
       const response = await ai.models.generateContent({
-        model: 'gemini-3.6-flash',
+        model: 'gemini-3.1-flash-lite',
         contents: [
           {
             role: 'user',
