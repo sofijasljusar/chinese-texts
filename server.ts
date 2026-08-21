@@ -49,11 +49,9 @@ Carefully inspect the image and transcribe each highlighted word or phrase accur
 ## 📖 New Vocabulary (Highlighted Words)
 For each highlighted vocabulary word:
 - **Chinese Characters** (with Pinyin)
-- **English Meaning / Definition**
-- **Formality / Register**: Explicitly label as [Everyday / Casual] or [Formal / Literary]
-- **Chengyu Check**: If the word is a 4-character idiom (成语 / Chengyu):
-  - Break it down character-by-character with individual character meanings.
-  - Briefly explain the cultural background / metaphor / story origin in 1-2 concise sentences.
+- **Translation**
+- **Formality**: ONLY include this bullet point if the word is formal or literary. If it is formal, also provide casual alternatives. DO NOT include this bullet point if the word is already casual/everyday.
+- **Chengyu**: ONLY include this bullet point if the word is a 4-character idiom (成语 / Chengyu). If it is a Chengyu, break it down character-by-character and briefly explain its cultural meaning in 1-2 sentences. DO NOT include this bullet point if it is not a Chengyu.
 
 ---
 
@@ -65,7 +63,7 @@ For each highlighted grammar section:
 - **Word Order Logic**: Clearly explain *why* words are in this specific order according to Chinese syntax rules.
 - **Example Sentences**: Give 2 practical, easy-to-understand example sentences demonstrating this grammar pattern with Pinyin and English translation.
 
-If no specific words or grammar were detected, politely transcribe whatever Chinese text is visible and provide a general breakdown. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability in a student copybook note-taking workflow.`;
+CRITICAL INSTRUCTION: DO NOT output any introductory text, greetings, conversational filler, or concluding remarks. Your response MUST consist ONLY of the "## 📖 New Vocabulary (Highlighted Words)" and "## 🧩 Grammar Breakdown (Highlighted Sentences / Parts)" sections. If no specific words or grammar were detected, just provide the transcription under these headings without any preamble. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability in a student copybook note-taking workflow.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',

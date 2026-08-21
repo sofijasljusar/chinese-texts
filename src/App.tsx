@@ -71,7 +71,8 @@ export default function App() {
       }
       setAnalysisResult(data.result || 'No analysis available.');
     } catch (err: any) {
-      setErrorMsg(err.message || 'Something went wrong while connecting to the AI.');
+      console.error(err);
+      setErrorMsg("Couldn't generate message, please try again soon.");
     } finally {
       setIsLoading(false);
     }
