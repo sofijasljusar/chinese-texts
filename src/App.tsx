@@ -234,7 +234,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
         <div className="flex flex-col items-center justify-center text-center p-8 max-w-sm relative z-10">
           <div className="w-24 h-24 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-6 shadow-xl relative backdrop-blur-sm">
             <div className="absolute inset-2 rounded-full border border-zinc-800 border-dashed animate-[spin_60s_linear_infinite]"></div>
-            <Upload className="w-10 h-10 text-zinc-600 drop-shadow-md" />
+            <Camera className="w-10 h-10 text-zinc-600 drop-shadow-md" />
           </div>
 
           <h3 className="text-zinc-100 font-serif tracking-wide text-xl mb-3">Scan Chinese Text</h3>
@@ -253,7 +253,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
           <div className="w-full flex flex-col gap-3">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="w-full px-6 py-3.5 rounded-xl bg-red-900 hover:bg-red-950 text-amber-50 text-sm font-semibold tracking-wide flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(100,10,10,0.2)] active:scale-95 transition cursor-pointer"
+              className="w-full px-6 py-3.5 rounded-xl bg-red-900 hover:bg-red-950 text-amber-50 text-base font-serif font-semibold tracking-wide flex items-center justify-center gap-2 shadow-[0_8px_30px_rgba(100,10,10,0.2)] active:scale-95 transition cursor-pointer"
             >
               <Upload className="w-4 h-4 text-amber-200/60" />
               <span>Choose Photo</span>
