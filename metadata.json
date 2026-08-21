@@ -1,5 +1,5 @@
 {
-  "name": "Chinese Study Assistant",
+  "name": "Little Dragon",
   "description": "Snap a photo of Chinese text, highlight words and grammar, and get instant AI-powered explanations.",
   "requestFramePermissions": [
     "camera"

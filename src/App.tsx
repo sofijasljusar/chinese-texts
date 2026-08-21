@@ -207,7 +207,7 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
             龙
           </div>
           <div>
-            <h1 className="text-[15px] font-serif font-semibold text-zinc-100 tracking-widest uppercase">Chinese Study</h1>
+            <h1 className="text-[15px] font-serif font-semibold text-zinc-100 tracking-widest uppercase">Little Dragon</h1>
             <p className="text-[11px] text-zinc-400 font-light tracking-wide">Snap text to highlight & analyze</p>
           </div>
         </div>

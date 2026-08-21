@@ -1,6 +1,6 @@
 {
-  "name": "Chinese Study",
-  "short_name": "Chinese Study",
+  "name": "Little Dragon",
+  "short_name": "Little Dragon",
   "description": "An elegant tool to scan and analyze Chinese text.",
   "start_url": "/",
   "display": "standalone",
