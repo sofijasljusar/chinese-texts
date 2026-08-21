@@ -370,29 +370,11 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
 
             <div className="w-full flex flex-col gap-3">
               <button
-                onClick={startCamera}
-                disabled={cameraLoading}
-                className="w-full px-5 py-3 rounded-xl bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-orange-500/20 active:scale-95 transition cursor-pointer"
-              >
-                {cameraLoading ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    <span>Opening Camera...</span>
-                  </>
-                ) : (
-                  <>
-                    <Camera className="w-4 h-4" />
-                    <span>Turn On Camera</span>
-                  </>
-                )}
-              </button>
-
-              <button
                 onClick={() => fileInputRef.current?.click()}
                 className="w-full px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium flex items-center justify-center gap-2 border border-zinc-700 active:scale-95 transition cursor-pointer"
               >
                 <Upload className="w-4 h-4 text-zinc-400" />
-                <span>Choose Photo from Album</span>
+                <span>Choose Photo</span>
               </button>
             </div>
           </div>
