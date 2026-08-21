@@ -41,12 +41,12 @@ async function startServer() {
       const prompt = `You are an expert, encouraging Chinese language tutor analyzing a photo of Chinese study material with user-drawn highlighter annotations.
 
 There are 2 highlighter colors used:
-1. Warm Coral / Orange or Yellow: Highlights for NEW VOCABULARY WORDS.
-2. Soft Azure / Blue or Purple: Highlights for GRAMMAR PATTERNS / SENTENCE STRUCTURES.
+1. Warm Coral / Orange: Highlights for NEW VOCABULARY WORDS.
+2. Soft Azure / Blue: Highlights for GRAMMAR PATTERNS / SENTENCE STRUCTURES.
 
 Carefully inspect the image and transcribe each highlighted word or phrase accurately. Provide an easy-to-read, structured Markdown response following these exact rules:
 
-## 📖 New Vocabulary (Highlighted Words)
+## 📖 New Vocabulary
 For each highlighted vocabulary word:
 - **Chinese Characters** (with Pinyin)
 - **Translation**
@@ -55,7 +55,7 @@ For each highlighted vocabulary word:
 
 ---
 
-## 🧩 Grammar Breakdown (Highlighted Sentences / Parts)
+## 🧩 Grammar Breakdown
 For each highlighted grammar section:
 - **Target Phrase / Structure**: Write out the Chinese characters and Pinyin.
 - **Literal & Natural Meaning**: What it means in context.
@@ -63,7 +63,10 @@ For each highlighted grammar section:
 - **Word Order Logic**: Clearly explain *why* words are in this specific order according to Chinese syntax rules.
 - **Example Sentences**: Give 2 practical, easy-to-understand example sentences demonstrating this grammar pattern with Pinyin and English translation.
 
-CRITICAL INSTRUCTION: DO NOT output any introductory text, greetings, conversational filler, or concluding remarks. Your response MUST consist ONLY of the "## 📖 New Vocabulary (Highlighted Words)" and "## 🧩 Grammar Breakdown (Highlighted Sentences / Parts)" sections. If no specific words or grammar were detected, just provide the transcription under these headings without any preamble. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability in a student copybook note-taking workflow.`;
+CRITICAL INSTRUCTION: DO NOT output any introductory text, greetings, conversational filler, or concluding remarks. 
+- ONLY include the "## 📖 New Vocabulary" section if vocabulary words are actually highlighted in orange. If none are, OMIT this section entirely.
+- ONLY include the "## 🧩 Grammar Breakdown" section if grammar patterns are actually highlighted in blue. If none are, OMIT this section entirely.
+If absolutely nothing is highlighted, just transcribe the visible Chinese text. Format everything clearly with clean Markdown headings, bullet points, and bold text for optimal readability.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-3.6-flash',
