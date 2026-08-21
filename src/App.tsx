@@ -127,107 +127,7 @@ export default function App() {
    1. CAMERA & CAPTURE VIEW
    ========================================================================= */
 function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [streamActive, setStreamActive] = useState(false);
-  const [cameraLoading, setCameraLoading] = useState(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-
-  const stopCamera = useCallback(() => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        try {
-          track.stop();
-        } catch (err) {
-          console.warn('Error stopping camera track:', err);
-        }
-      });
-      streamRef.current = null;
-    }
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
-    }
-    setStreamActive(false);
-    setCameraLoading(false);
-  }, []);
-
-  const startCamera = useCallback(async () => {
-    stopCamera();
-    setCameraLoading(true);
-    setCameraError(null);
-
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      setCameraError('Camera access is not supported on this browser or device.');
-      setCameraLoading(false);
-      return;
-    }
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 },
-        },
-      });
-      streamRef.current = stream;
-      setStreamActive(true);
-    } catch (err: any) {
-      console.warn('Camera stream error or permission denied:', err);
-      if (err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError') {
-        setCameraError('Camera permission was denied. Please allow camera access in your browser settings or choose a photo from your album.');
-      } else {
-        setCameraError('Could not access camera. You can upload an image or try sample text.');
-      }
-      stopCamera();
-    } finally {
-      setCameraLoading(false);
-    }
-  }, [stopCamera]);
-
-  // Attach srcObject when streamActive and videoRef are ready
-  useEffect(() => {
-    if (streamActive && videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-    }
-  }, [streamActive]);
-
-  // Stop camera when component unmounts
-  useEffect(() => {
-    return () => {
-      stopCamera();
-    };
-  }, [stopCamera]);
-
-  // Stop camera when tab becomes hidden
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        stopCamera();
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [stopCamera]);
-
-  const capturePhoto = () => {
-    if (!videoRef.current || !streamActive) return;
-    const video = videoRef.current;
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth || 1280;
-    canvas.height = video.videoHeight || 720;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      stopCamera();
-      onCapture(dataUrl);
-    }
-  };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -235,7 +135,6 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
     const reader = new FileReader();
     reader.onload = () => {
       if (typeof reader.result === 'string') {
-        stopCamera();
         onCapture(reader.result);
       }
     };
@@ -243,7 +142,6 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
   };
 
   const loadSampleChineseText = () => {
-    stopCamera();
     // Render a high quality sample Chinese passage onto a canvas
     const canvas = document.createElement('canvas');
     canvas.width = 1000;
@@ -325,115 +223,37 @@ function CameraCaptureView({ onCapture }: { onCapture: (img: string) => void }) 
         </button>
       </header>
 
-      {/* Viewfinder area */}
+      {/* Main Upload area */}
       <div className="flex-1 relative flex items-center justify-center overflow-hidden">
-        {streamActive && !cameraError ? (
-          <>
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-            />
-            {/* Viewfinder Framing Guide */}
-            <div className="pointer-events-none absolute inset-10 border-2 border-dashed border-white/30 rounded-2xl flex items-center justify-center">
-              <span className="text-[11px] font-medium tracking-wider uppercase text-white/60 bg-black/40 px-3 py-1 rounded-full backdrop-blur-md">
-                Align Chinese Text
-              </span>
-            </div>
-            {/* Stop Camera overlay button */}
+        <div className="flex flex-col items-center justify-center text-center p-8 text-zinc-400 max-w-sm">
+          <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5 text-zinc-400 shadow-inner relative">
+            <Camera className="w-10 h-10 text-orange-500/80" />
+          </div>
+
+          <h3 className="text-zinc-100 font-semibold text-lg mb-2">Scan Chinese Text</h3>
+          <p className="text-xs text-zinc-400 max-w-[280px] mb-6 leading-relaxed">
+            Upload an existing image from your device to begin analysis.
+          </p>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+
+          <div className="w-full flex flex-col gap-3">
             <button
-              onClick={stopCamera}
-              className="absolute top-20 right-4 px-3 py-1.5 rounded-full bg-black/60 hover:bg-black/80 text-zinc-300 hover:text-white border border-white/10 text-xs flex items-center gap-1.5 backdrop-blur-md transition active:scale-95 cursor-pointer"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium flex items-center justify-center gap-2 border border-zinc-700 active:scale-95 transition cursor-pointer"
             >
-              <CameraOff className="w-3.5 h-3.5 text-red-400" />
-              <span>Stop Camera</span>
+              <Upload className="w-4 h-4 text-zinc-400" />
+              <span>Choose Photo</span>
             </button>
-          </>
-        ) : (
-          <div className="flex flex-col items-center justify-center text-center p-8 text-zinc-400 max-w-sm">
-            <div className="w-20 h-20 rounded-3xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mb-5 text-zinc-400 shadow-inner relative">
-              <Camera className="w-10 h-10 text-orange-500/80" />
-            </div>
-
-            <h3 className="text-zinc-100 font-semibold text-lg mb-2">Scan Chinese Text</h3>
-            <p className="text-xs text-zinc-400 max-w-[280px] mb-6 leading-relaxed">
-              Turn on your camera to capture study materials, or upload an existing image from your device.
-            </p>
-
-            {cameraError && (
-              <div className="w-full p-3 mb-6 rounded-xl bg-red-950/50 border border-red-800/60 text-red-300 text-xs text-left">
-                {cameraError}
-              </div>
-            )}
-
-            <div className="w-full flex flex-col gap-3">
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                className="w-full px-5 py-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-sm font-medium flex items-center justify-center gap-2 border border-zinc-700 active:scale-95 transition cursor-pointer"
-              >
-                <Upload className="w-4 h-4 text-zinc-400" />
-                <span>Choose Photo</span>
-              </button>
-            </div>
           </div>
-        )}
+        </div>
       </div>
-
-      {/* Bottom Controls Bar */}
-      <footer className="p-6 pb-8 bg-zinc-950/90 border-t border-zinc-900 backdrop-blur-lg flex items-center justify-between gap-4 z-20">
-        {/* Gallery / File Picker */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={handleFileUpload}
-        />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white hover:bg-zinc-800 transition active:scale-95 cursor-pointer"
-          title="Upload image"
-          aria-label="Upload image"
-        >
-          <Upload className="w-5 h-5" />
-        </button>
-
-        {/* Big Shutter Button */}
-        <button
-          onClick={streamActive ? capturePhoto : startCamera}
-          className={`w-18 h-18 rounded-full border-4 p-1 flex items-center justify-center transition shadow-xl cursor-pointer ${
-            streamActive
-              ? 'border-orange-500/80 active:scale-90'
-              : 'border-zinc-700 hover:border-zinc-500 opacity-80'
-          }`}
-          aria-label={streamActive ? 'Take Photo' : 'Turn On Camera'}
-          title={streamActive ? 'Take Photo' : 'Turn On Camera'}
-        >
-          <div
-            className={`w-full h-full rounded-full flex items-center justify-center shadow-md transition ${
-              streamActive ? 'bg-orange-500 text-white' : 'bg-zinc-800 text-zinc-400'
-            }`}
-          >
-            <Camera className="w-6 h-6" />
-          </div>
-        </button>
-
-        {/* Camera Toggle / Power button */}
-        <button
-          onClick={streamActive ? stopCamera : startCamera}
-          className={`w-12 h-12 rounded-2xl border flex items-center justify-center transition active:scale-95 cursor-pointer ${
-            streamActive
-              ? 'bg-zinc-900 border-zinc-800 text-orange-400 hover:bg-zinc-800 hover:text-orange-300'
-              : 'bg-zinc-900 border-zinc-800 text-zinc-500 hover:text-zinc-300'
-          }`}
-          title={streamActive ? 'Turn Off Camera' : 'Turn On Camera'}
-          aria-label={streamActive ? 'Turn Off Camera' : 'Turn On Camera'}
-        >
-          {streamActive ? <CameraOff className="w-5 h-5" /> : <RefreshCw className="w-5 h-5" />}
-        </button>
-      </footer>
     </div>
   );
 }
