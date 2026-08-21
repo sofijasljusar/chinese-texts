@@ -24,18 +24,18 @@ const COLOR_CONFIG = {
   vocab: {
     name: 'Vocabulary',
     label: 'New Words',
-    hex: 'rgba(249, 115, 22, 0.45)', // Coral Orange
-    border: 'rgb(249, 115, 22)',
-    badgeBg: 'bg-orange-500/10 text-orange-700 border-orange-200',
-    indicator: 'bg-orange-500',
+    hex: 'rgba(245, 158, 11, 0.45)', // Imperial Gold / Amber
+    border: 'rgb(245, 158, 11)',
+    badgeBg: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+    indicator: 'bg-amber-500',
   },
   grammar: {
     name: 'Grammar',
     label: 'Grammar / Structure',
-    hex: 'rgba(59, 130, 246, 0.45)', // Sky / Azure Blue
-    border: 'rgb(59, 130, 246)',
-    badgeBg: 'bg-blue-500/10 text-blue-700 border-blue-200',
-    indicator: 'bg-blue-500',
+    hex: 'rgba(5, 150, 105, 0.45)', // Jade Green / Emerald
+    border: 'rgb(5, 150, 105)',
+    badgeBg: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+    indicator: 'bg-emerald-600',
   },
 };
 
@@ -466,11 +466,11 @@ function HighlighterView({
           onClick={() => setActiveColor('vocab')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeColor === 'vocab'
-              ? 'bg-red-700 text-amber-50 shadow-lg shadow-red-900/40 scale-[1.02] ring-1 ring-red-500/50'
+              ? 'bg-amber-600/20 text-amber-500 shadow-lg shadow-amber-900/20 scale-[1.02] ring-1 ring-amber-500/50'
               : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700'
           }`}
         >
-          <span className="w-3 h-3 rounded-full bg-red-400 border border-white/40"></span>
+          <span className="w-3 h-3 rounded-full bg-amber-500 border border-amber-200/40"></span>
           <span>New Words</span>
         </button>
 
@@ -478,11 +478,11 @@ function HighlighterView({
           onClick={() => setActiveColor('grammar')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
             activeColor === 'grammar'
-              ? 'bg-amber-600 text-white shadow-lg shadow-amber-900/40 scale-[1.02] ring-1 ring-amber-500/50'
+              ? 'bg-emerald-600/20 text-emerald-500 shadow-lg shadow-emerald-900/20 scale-[1.02] ring-1 ring-emerald-500/50'
               : 'bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-700'
           }`}
         >
-          <span className="w-3 h-3 rounded-full bg-amber-400 border border-white/60"></span>
+          <span className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-200/40"></span>
           <span>Grammar & Order</span>
         </button>
       </div>
