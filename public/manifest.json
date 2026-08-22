@@ -1,6 +1,6 @@
 {
-  "name": "Маленький Дракон",
-  "short_name": "Маленький Дракон",
+  "name": "Little Dragon",
+  "short_name": "Little Dragon",
   "description": "Рятує домашку з китайської та миттєво розкладає складну граматику по поличках.",
   "start_url": "/",
   "display": "standalone",
