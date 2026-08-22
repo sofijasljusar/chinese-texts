@@ -74,7 +74,10 @@ export const t = {
     infoP2: "🏮 **Read Faster:** Scan book pages to instantly decode complex grammar.",
     infoP3: "🀄  **Watch Movies:** Snap photos of subtitles while watching Chinese media.",
     infoP4: "⛩️ **Dual Learning:** Passively pick up English nuances alongside Chinese.",
-    infoClose: "Got it"
+    infoClose: "Got it",
+    errorAnalyze: "Unable to analyze image. Please try again.",
+    errorGenerate: "Couldn't generate message, please try again soon.",
+    errorNoAnalysis: "No analysis available."
   },
   ua: {
     title: "Маленький Дракон",
@@ -105,7 +108,10 @@ export const t = {
     infoP2: "🏮 **Читайте книги:** Скануйте сторінки книг для розбору складної граматики.",
     infoP3: "🀄 **Переглядайте фільми:** Фотографуйте субтитри під час перегляду китайських фільмів.",
     infoP4: "⛩️ **Подвійне навчання:** Покращуйте англійську паралельно з вивченням китайської.",
-    infoClose: "Зрозуміло"
+    infoClose: "Зрозуміло",
+    errorAnalyze: "Не вдалося проаналізувати зображення. Будь ласка, спробуйте ще раз.",
+    errorGenerate: "Не вдалося згенерувати повідомлення, будь ласка, спробуйте пізніше.",
+    errorNoAnalysis: "Аналіз недоступний."
   }
 };
 
@@ -138,12 +144,13 @@ export default function App() {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Unable to analyze image. Please try again.');
+        console.error('Backend API Error:', data.error);
+        throw new Error(t[language].errorAnalyze);
       }
-      setAnalysisResult(data.result || 'No analysis available.');
+      setAnalysisResult(data.result || t[language].errorNoAnalysis);
     } catch (err: any) {
       console.error(err);
-      setErrorMsg("Couldn't generate message, please try again soon.");
+      setErrorMsg(err.message === "Failed to fetch" ? t[language].errorGenerate : (err.message || t[language].errorGenerate));
     } finally {
       setIsLoading(false);
     }
