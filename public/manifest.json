@@ -1,7 +1,7 @@
 {
-  "name": "Little Dragon",
-  "short_name": "Little Dragon",
-  "description": "An elegant tool to scan and analyze Chinese text.",
+  "name": "Маленький Дракон",
+  "short_name": "Маленький Дракон",
+  "description": "Елегантний інструмент для сканування та аналізу китайського тексту.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#09090b",
